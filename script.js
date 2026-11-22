@@ -493,3 +493,85 @@ function renderRoute() {
 }
 
 renderRoute();
+// ---------- Delete a place (place.html) ----------
+const deletePlaceDialog = document.getElementById("delete-place-dialog");
+
+if (deletePlaceDialog) {
+  const placeId = Number(getParam("place"));
+
+  document.getElementById("delete-place-btn").addEventListener("click", function () {
+    const data = loadData();
+
+    const count = data.routes.filter(function (r) {
+      return r.placeId === placeId;
+    }).length;
+
+    document.getElementById("delete-place-message").textContent =
+      count === 0
+        ? "This cannot be undone."
+        : "This will also delete its " + count +
+          (count === 1 ? " route" : " routes") + ". This cannot be undone.";
+
+    deletePlaceDialog.showModal();
+  });
+
+  document.getElementById("delete-place-cancel").addEventListener("click", function () {
+    deletePlaceDialog.close();
+  });
+
+  document.getElementById("delete-place-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const data = loadData();
+
+    const place = data.places.find(function (p) {
+      return p.id === placeId;
+    });
+
+    data.places = data.places.filter(function (p) {
+      return p.id !== placeId;
+    });
+    data.routes = data.routes.filter(function (r) {
+      return r.placeId !== placeId;
+    });
+
+    saveData(data);
+
+    window.location.href = place
+      ? "places.html?state=" + encodeURIComponent(place.state)
+      : "index.html";
+  });
+}
+// ---------- Delete a route (route.html) ----------
+const deleteDialog = document.getElementById("delete-dialog");
+
+if (deleteDialog) {
+  document.getElementById("delete-btn").addEventListener("click", function () {
+    deleteDialog.showModal();
+  });
+
+  document.getElementById("delete-cancel").addEventListener("click", function () {
+    deleteDialog.close();
+  });
+
+  document.getElementById("delete-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const routeId = Number(getParam("route"));
+    const data = loadData();
+
+    const route = data.routes.find(function (r) {
+      return r.id === routeId;
+    });
+
+    data.routes = data.routes.filter(function (r) {
+      return r.id !== routeId;
+    });
+
+    saveData(data);
+
+    window.location.href = route
+      ? "place.html?place=" + route.placeId
+      : "index.html";
+  });
+}

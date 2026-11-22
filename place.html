@@ -19,8 +19,17 @@
 
   <h2>Routes</h2>
   <ul id="routes-list"></ul>
+  <button id="delete-place-btn">Delete place</button>
 </main>
+<dialog id="delete-place-dialog">
+  <form id="delete-place-form">
+    <h2>Delete this place?</h2>
+    <p id="delete-place-message"></p>
 
+    <button type="button" id="delete-place-cancel">Cancel</button>
+    <button type="submit">Delete</button>
+  </form>
+</dialog>
   <script src="script.js"></script>
 </body>
 </html>

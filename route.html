@@ -21,7 +21,15 @@
   <a id="edit-btn" href="add-route.html">Edit</a>
   <button id="delete-btn">Delete</button>
 </main>
+<dialog id="delete-dialog">
+  <form id="delete-form">
+    <h2>Delete this route?</h2>
+    <p>This cannot be undone.</p>
 
+    <button type="button" id="delete-cancel">Cancel</button>
+    <button type="submit">Delete</button>
+  </form>
+</dialog>
   <script src="script.js"></script>
 </body>
 </html>
