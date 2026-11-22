@@ -371,3 +371,75 @@ if (routeForm) {
     window.location.href = "place.html?place=" + placeId;
   });
 }
+// ---------- Route page (route.html) ----------
+function formatFare(amount) {
+  return amount > 0 ? "₦" + amount.toLocaleString() : "Free";
+}
+
+function addLine(parent, text) {
+  const p = document.createElement("p");
+  p.textContent = text;
+  parent.appendChild(p);
+}
+
+function renderRoute() {
+  const list = document.getElementById("steps-list");
+  if (!list) return; // not on this page
+
+  const routeId = Number(getParam("route"));
+  const data = loadData();
+
+  const route = data.routes.find(function (r) {
+    return r.id === routeId;
+  });
+
+  if (!route) {
+    document.getElementById("route-title").textContent = "Route not found";
+    return;
+  }
+
+  const place = data.places.find(function (p) {
+    return p.id === route.placeId;
+  });
+
+  document.getElementById("route-title").textContent = route.from + " to " + route.to;
+  document.getElementById("route-version").textContent = route.version;
+
+  if (place) {
+    const back = document.getElementById("back-link");
+    back.textContent = "← " + place.name;
+    back.href = "place.html?place=" + place.id;
+  }
+
+  list.innerHTML = "";
+  let total = 0;
+
+  route.steps.forEach(function (step) {
+    total += step.fare;
+
+    const li = document.createElement("li");
+
+    const heading = document.createElement("h3");
+    heading.textContent = step.mode;
+    li.appendChild(heading);
+
+    addLine(li, step.startPoint + " to " + step.stopPoint);
+
+    if (step.landmarks) {
+      addLine(li, "Landmarks: " + step.landmarks);
+    }
+    if (step.checkpoints.length > 0) {
+      addLine(li, "You will pass: " + step.checkpoints.join(", then "));
+    }
+    if (step.note) {
+      addLine(li, "Note: " + step.note);
+    }
+    addLine(li, "Fare: " + formatFare(step.fare));
+
+    list.appendChild(li);
+  });
+
+  document.getElementById("total").textContent = "Total fare: " + formatFare(total);
+}
+
+renderRoute();
