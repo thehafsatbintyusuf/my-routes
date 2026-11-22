@@ -161,3 +161,60 @@ if (placeDialog) {
 }
 
 renderPlaces();
+
+
+// ---------- Place page (place.html) ----------
+function renderPlace() {
+  const list = document.getElementById("routes-list");
+  if (!list) return; // not on this page
+
+  const placeId = Number(getParam("place"));
+  const data = loadData();
+
+  const place = data.places.find(function (p) {
+    return p.id === placeId;
+  });
+
+  if (!place) {
+    document.getElementById("place-title").textContent = "Place not found";
+    return;
+  }
+
+  document.getElementById("place-title").textContent = place.name;
+  document.getElementById("back-link").textContent = "← " + place.state;
+  document.getElementById("back-link").href =
+    "places.html?state=" + encodeURIComponent(place.state);
+  document.getElementById("add-route-btn").href = "add-route.html?place=" + place.id;
+
+  const routes = data.routes.filter(function (r) {
+    return r.placeId === place.id;
+  });
+
+  document.getElementById("route-count").textContent =
+    routes.length + (routes.length === 1 ? " saved route" : " saved routes");
+
+  list.innerHTML = "";
+
+  if (routes.length === 0) {
+    const empty = document.createElement("li");
+    empty.textContent = "No routes yet. Tap + Add route.";
+    list.appendChild(empty);
+    return;
+  }
+
+  routes.forEach(function (route) {
+    const li = document.createElement("li");
+    const link = document.createElement("a");
+    link.textContent = route.from + " to " + route.to;
+    link.href = "route.html?route=" + route.id;
+
+    const span = document.createElement("span");
+    span.textContent = " " + route.version;
+
+    li.appendChild(link);
+    li.appendChild(span);
+    list.appendChild(li);
+  });
+}
+
+renderPlace();
