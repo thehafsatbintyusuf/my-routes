@@ -276,12 +276,29 @@ function renumberSteps() {
   });
 }
 
-function addStep() {
+function addStep(saved) {
   const template = document.getElementById("step-template");
   const step = template.content.firstElementChild.cloneNode(true);
   document.getElementById("steps-container").appendChild(step);
 
-  addCheckpointRow(step);
+  if (saved) {
+    step.querySelector(".step-mode").value = saved.mode;
+    step.querySelector(".step-start").value = saved.startPoint;
+    step.querySelector(".step-stop").value = saved.stopPoint;
+    step.querySelector(".step-landmarks").value = saved.landmarks;
+    step.querySelector(".step-fare").value = saved.fare ? saved.fare : "";
+    step.querySelector(".step-note").value = saved.note;
+
+    if (saved.checkpoints.length > 0) {
+      saved.checkpoints.forEach(function (name) {
+        addCheckpointRow(step, name);
+      });
+    } else {
+      addCheckpointRow(step);
+    }
+  } else {
+    addCheckpointRow(step);
+  }
 
   step.querySelector(".add-checkpoint-btn").addEventListener("click", function () {
     addCheckpointRow(step);
@@ -325,13 +342,36 @@ function collectSteps() {
 const routeForm = document.getElementById("route-form");
 
 if (routeForm) {
-  const placeId = Number(getParam("place"));
+  const routeId = Number(getParam("route")); // only set when editing
+  const startData = loadData();
 
-  document.querySelector("header a").href = "place.html?place=" + placeId;
+  const editing = startData.routes.find(function (r) {
+    return r.id === routeId;
+  });
+
+  const placeId = editing ? editing.placeId : Number(getParam("place"));
+
+  document.querySelector("header a").href = editing
+    ? "route.html?route=" + editing.id
+    : "place.html?place=" + placeId;
 
   fillCheckpointSuggestions();
-  addStep();
-  document.getElementById("add-step-btn").addEventListener("click", addStep);
+
+  if (editing) {
+    document.querySelector("header h1").textContent = "Edit route";
+    document.getElementById("from").value = editing.from;
+    document.getElementById("to").value = editing.to;
+    document.getElementById("version").value = editing.version;
+    editing.steps.forEach(function (step) {
+      addStep(step);
+    });
+  } else {
+    addStep();
+  }
+
+  document.getElementById("add-step-btn").addEventListener("click", function () {
+    addStep();
+  });
 
   routeForm.addEventListener("submit", function (event) {
     event.preventDefault();
@@ -348,7 +388,6 @@ if (routeForm) {
 
     const steps = collectSteps();
 
-    // remember any new checkpoint names for next time
     steps.forEach(function (step) {
       step.checkpoints.forEach(function (name) {
         const known = data.savedCheckpoints.some(function (saved) {
@@ -358,17 +397,27 @@ if (routeForm) {
       });
     });
 
-    data.routes.push({
-      id: Date.now(),
-      placeId: placeId,
+    const details = {
       from: document.getElementById("from").value.trim(),
       to: document.getElementById("to").value.trim(),
       version: document.getElementById("version").value.trim(),
       steps: steps
-    });
+    };
+
+    if (editing) {
+      const existing = data.routes.find(function (r) {
+        return r.id === routeId;
+      });
+      Object.assign(existing, details);
+    } else {
+      data.routes.push(Object.assign({ id: Date.now(), placeId: placeId }, details));
+    }
 
     saveData(data);
-    window.location.href = "place.html?place=" + placeId;
+
+    window.location.href = editing
+      ? "route.html?route=" + routeId
+      : "place.html?place=" + placeId;
   });
 }
 // ---------- Route page (route.html) ----------
@@ -404,6 +453,7 @@ function renderRoute() {
 
   document.getElementById("route-title").textContent = route.from + " to " + route.to;
   document.getElementById("route-version").textContent = route.version;
+  document.getElementById("edit-btn").href = "add-route.html?route=" + route.id;
 
   if (place) {
     const back = document.getElementById("back-link");
