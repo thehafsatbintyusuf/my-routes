@@ -9,21 +9,27 @@
 <body>
 
   <header>
-    <h1>My Routes<sup>ng</sup></h1>
+    <h1>My Routes<sub>.NG</sub></h1>
     <p>Which state are you in?</p>
   </header>
 
   <main>
-    <ul id="states-list">
-      <li><a href="places.html">Abuja</a></li>
-      <li><a href="places.html">Delta</a></li>
-      <li><a href="places.html">Adamawa</a></li>
-      <li><a href="places.html">Ilorin</a></li>
-    </ul>
+    <ul id="states-list"></ul>
 
     <button id="add-state-btn">+ Add state</button>
   </main>
+<dialog id="state-dialog">
+  <form id="state-form">
+    <h2>Add a state</h2>
 
+    <label for="state-name">State name</label>
+    <input type="text" id="state-name" required>
+    <p id="state-error" hidden></p>
+
+    <button type="button" id="state-cancel">Cancel</button>
+    <button type="submit">Add</button>
+  </form>
+</dialog>
   <script src="script.js"></script>
 </body>
 </html>
