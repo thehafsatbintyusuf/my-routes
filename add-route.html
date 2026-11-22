@@ -14,75 +14,68 @@
   </header>
 
   <main>
-    <form id="route-form">
+  <form id="route-form">
 
-      <label for="from">From</label>
-      <input type="text" id="from" placeholder="e.g. Home">
+    <label for="from">From</label>
+    <input type="text" id="from" placeholder="e.g. Home" required>
 
-      <label for="to">To</label>
-      <input type="text" id="to" placeholder="e.g. NITDA">
+    <label for="to">To</label>
+    <input type="text" id="to" placeholder="e.g. NITDA" required>
 
-      <label for="version">Version</label>
-      <input type="text" id="version" placeholder="e.g. Morning, before 8 a.m.">
+    <label for="version">Version</label>
+    <input type="text" id="version" placeholder="e.g. Morning, before 8 a.m.">
 
-      <section id="step-1">
-        <h2>Step 1</h2>
+    <div id="steps-container"></div>
 
-        <label for="mode">Travel by</label>
-        <select id="mode">
+    <button type="button" id="add-step-btn">+ Add another step</button>
+    <button type="submit" id="save-route-btn">Save route</button>
+
+  </form>
+
+  <datalist id="saved-checkpoints"></datalist>
+
+  <template id="step-template">
+    <section class="step">
+      <h2 class="step-title"></h2>
+
+      <label>Travel by
+        <select class="step-mode">
           <option>Bus</option>
           <option>Keke</option>
           <option>Cab</option>
           <option>Walk</option>
         </select>
+      </label>
 
-        <label for="start">Where I start</label>
-        <input type="text" id="start" placeholder="e.g. Opposite Kurudu">
+      <label>Where I start
+        <input type="text" class="step-start">
+      </label>
 
-        <label for="stop">Where I stop</label>
-        <input type="text" id="stop" placeholder="e.g. Court of Appeal">
+      <label>Where I stop
+        <input type="text" class="step-stop">
+      </label>
 
-        <label for="landmarks">Landmarks I see</label>
-        <input type="text" id="landmarks" placeholder="e.g. Honeysuckle, River House">
+      <label>Landmarks I see
+        <input type="text" class="step-landmarks">
+      </label>
 
-        <h3>Checkpoints I pass (in order)</h3>
+      <h3>Checkpoints I pass (in order)</h3>
+      <div class="checkpoints"></div>
+      <button type="button" class="add-checkpoint-btn">+ Add checkpoint</button>
 
-        <div class="checkpoint-row">
-          <input type="text" list="saved-checkpoints" placeholder="Pick or type a new one">
-          <button type="button">↑</button>
-          <button type="button">↓</button>
-          <button type="button">−</button>
-        </div>
+      <label>Fare (₦)
+        <input type="text" inputmode="numeric" class="step-fare">
+      </label>
 
-        <div class="checkpoint-row">
-          <input type="text" list="saved-checkpoints" placeholder="Pick or type a new one">
-          <button type="button">↑</button>
-          <button type="button">↓</button>
-          <button type="button">−</button>
-        </div>
+      <label>Note
+        <input type="text" class="step-note">
+      </label>
 
-        <datalist id="saved-checkpoints">
-          <option value="Karu CBN Junction">
-          <option value="Market Square">
-          <option value="Kurudu Block Industries">
-          <option value="Kurudu Market">
-        </datalist>
+      <button type="button" class="remove-step-btn">Remove this step</button>
+    </section>
+  </template>
+</main>
 
-        <button type="button" id="add-checkpoint-btn">+ Add checkpoint</button>
-
-        <label for="fare">Fare (₦)</label>
-        <input type="text" id="fare" inputmode="numeric" placeholder="e.g. 200">
-
-        <label for="note">Note</label>
-        <input type="text" id="note" placeholder="e.g. Leave before 8 a.m.">
-      </section>
-
-      <button type="button" id="add-step-btn">+ Add another step</button>
-      <button type="submit" id="save-route-btn">Save route</button>
-
-    </form>
-  </main>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

@@ -218,3 +218,156 @@ function renderPlace() {
 }
 
 renderPlace();
+
+// ---------- Add route page (add-route.html) ----------
+function makeButton(text, label) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = text;
+  button.setAttribute("aria-label", label);
+  return button;
+}
+
+function fillCheckpointSuggestions() {
+  const datalist = document.getElementById("saved-checkpoints");
+  datalist.innerHTML = "";
+  loadData().savedCheckpoints.forEach(function (name) {
+    const option = document.createElement("option");
+    option.value = name;
+    datalist.appendChild(option);
+  });
+}
+
+function addCheckpointRow(stepEl, value) {
+  const row = document.createElement("div");
+  row.className = "checkpoint-row";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.setAttribute("list", "saved-checkpoints");
+  input.placeholder = "Pick or type a new one";
+  input.value = value || "";
+
+  const up = makeButton("↑", "Move checkpoint up");
+  const down = makeButton("↓", "Move checkpoint down");
+  const remove = makeButton("−", "Remove checkpoint");
+
+  up.addEventListener("click", function () {
+    const previous = row.previousElementSibling;
+    if (previous) row.parentNode.insertBefore(row, previous);
+  });
+
+  down.addEventListener("click", function () {
+    const next = row.nextElementSibling;
+    if (next) row.parentNode.insertBefore(next, row);
+  });
+
+  remove.addEventListener("click", function () {
+    row.remove();
+  });
+
+  row.append(input, up, down, remove);
+  stepEl.querySelector(".checkpoints").appendChild(row);
+}
+
+function renumberSteps() {
+  document.querySelectorAll(".step").forEach(function (step, index) {
+    step.querySelector(".step-title").textContent = "Step " + (index + 1);
+  });
+}
+
+function addStep() {
+  const template = document.getElementById("step-template");
+  const step = template.content.firstElementChild.cloneNode(true);
+  document.getElementById("steps-container").appendChild(step);
+
+  addCheckpointRow(step);
+
+  step.querySelector(".add-checkpoint-btn").addEventListener("click", function () {
+    addCheckpointRow(step);
+  });
+
+  step.querySelector(".remove-step-btn").addEventListener("click", function () {
+    if (document.querySelectorAll(".step").length > 1) {
+      step.remove();
+      renumberSteps();
+    }
+  });
+
+  renumberSteps();
+}
+
+if (document.getElementById("route-form")) {
+  fillCheckpointSuggestions();
+  addStep();
+  document.getElementById("add-step-btn").addEventListener("click", addStep);
+}
+function collectSteps() {
+  return Array.from(document.querySelectorAll(".step")).map(function (step) {
+    const checkpoints = Array.from(step.querySelectorAll(".checkpoint-row input"))
+      .map(function (input) { return input.value.trim(); })
+      .filter(function (name) { return name !== ""; });
+
+    const fareText = step.querySelector(".step-fare").value;
+
+    return {
+      mode: step.querySelector(".step-mode").value,
+      startPoint: step.querySelector(".step-start").value.trim(),
+      stopPoint: step.querySelector(".step-stop").value.trim(),
+      landmarks: step.querySelector(".step-landmarks").value.trim(),
+      checkpoints: checkpoints,
+      fare: Number(fareText.replace(/[^\d.]/g, "")) || 0,
+      note: step.querySelector(".step-note").value.trim()
+    };
+  });
+}
+
+const routeForm = document.getElementById("route-form");
+
+if (routeForm) {
+  const placeId = Number(getParam("place"));
+
+  document.querySelector("header a").href = "place.html?place=" + placeId;
+
+  fillCheckpointSuggestions();
+  addStep();
+  document.getElementById("add-step-btn").addEventListener("click", addStep);
+
+  routeForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const data = loadData();
+
+    const placeExists = data.places.some(function (place) {
+      return place.id === placeId;
+    });
+    if (!placeExists) {
+      alert("Open this form from a place, using + Add route.");
+      return;
+    }
+
+    const steps = collectSteps();
+
+    // remember any new checkpoint names for next time
+    steps.forEach(function (step) {
+      step.checkpoints.forEach(function (name) {
+        const known = data.savedCheckpoints.some(function (saved) {
+          return saved.toLowerCase() === name.toLowerCase();
+        });
+        if (!known) data.savedCheckpoints.push(name);
+      });
+    });
+
+    data.routes.push({
+      id: Date.now(),
+      placeId: placeId,
+      from: document.getElementById("from").value.trim(),
+      to: document.getElementById("to").value.trim(),
+      version: document.getElementById("version").value.trim(),
+      steps: steps
+    });
+
+    saveData(data);
+    window.location.href = "place.html?place=" + placeId;
+  });
+}
