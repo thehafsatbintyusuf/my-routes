@@ -3,14 +3,53 @@ const STORAGE_KEY = "myRoutesData";
 
 function loadData() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    return JSON.parse(saved);
-  }
-  return { states: [], places: [], routes: [], savedCheckpoints: [] };
+  const data = saved
+    ? JSON.parse(saved)
+    : { states: [], places: [], routes: [], savedCheckpoints: [] };
+
+  if (!data.stateImages) data.stateImages = {};
+  return data;
 }
 
 function saveData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  } catch (error) {
+    alert("Could not save. The browser storage may be full.");
+    return false;
+  }
+}
+
+//---------- Image helpers ----------
+function readImage(file) {
+  return new Promise(function (resolve) {
+    if (!file) {
+      resolve("");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function () {
+      const img = new Image();
+
+      img.onload = function () {
+        const scale = Math.min(1, 600 / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.7));
+      };
+
+      img.onerror = function () { resolve(""); };
+      img.src = reader.result;
+    };
+
+    reader.onerror = function () { resolve(""); };
+    reader.readAsDataURL(file);
+  });
 }
 // ---------- State picker (index.html) ----------
 let stateBeingChanged = null;
@@ -22,15 +61,41 @@ function renderStates() {
   const data = loadData();
   list.innerHTML = "";
 
+  if (data.states.length === 0) {
+    const empty = document.createElement("li");
+    empty.textContent = "No states yet. Tap + Add state.";
+    list.appendChild(empty);
+    return;
+  }
+
   data.states.forEach(function (state) {
     const li = document.createElement("li");
+    li.className = "state-card";
 
     const link = document.createElement("a");
-    link.textContent = state;
+    link.className = "state-link";
     link.href = "places.html?state=" + encodeURIComponent(state);
+
+    const picture = document.createElement("div");
+    picture.className = "state-picture";
+    const image = data.stateImages[state];
+    if (image) {
+      picture.style.backgroundImage = 'url("' + image + '")';
+    }
+
+    const name = document.createElement("span");
+    name.className = "state-name";
+    name.textContent = state;
+
+    link.append(picture, name);
+
+    const actions = document.createElement("div");
+    actions.className = "state-actions";
 
     const renameBtn = makeButton("Rename", "Rename " + state);
     const deleteBtn = makeButton("Delete", "Delete " + state);
+    renameBtn.className = "btn-rename";
+    deleteBtn.className = "btn-delete";
 
     renameBtn.addEventListener("click", function () {
       openRenameState(state);
@@ -39,7 +104,8 @@ function renderStates() {
       openDeleteState(state);
     });
 
-    li.append(link, renameBtn, deleteBtn);
+    actions.append(renameBtn, deleteBtn);
+    li.append(link, actions);
     list.appendChild(li);
   });
 }
@@ -62,21 +128,25 @@ if (stateDialog) {
     stateDialog.close();
   });
 
-  stateForm.addEventListener("submit", function (event) {
-    event.preventDefault(); // stop the page from reloading
+  stateForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
 
     const clean = stateInput.value.trim();
     if (!clean) return;
 
-    const data = loadData();
-
-    if (data.states.includes(clean)) {
+    const checkData = loadData();
+    if (checkData.states.includes(clean)) {
       stateError.textContent = clean + " is already saved.";
       stateError.hidden = false;
       return;
     }
 
+    const image = await readImage(document.getElementById("state-image").files[0]);
+
+    const data = loadData();
     data.states.push(clean);
+    if (image) data.stateImages[clean] = image;
+
     saveData(data);
     renderStates();
     stateDialog.close();
@@ -608,6 +678,7 @@ function openRenameState(state) {
   document.getElementById("edit-state-dialog").showModal();
   input.focus();
   input.select();
+  document.getElementById("edit-state-image").value = "";
 }
 
 function openDeleteState(state) {
@@ -645,7 +716,7 @@ if (editStateDialog && deleteStateDialog) {
     deleteStateDialog.close();
   });
 
-  document.getElementById("edit-state-form").addEventListener("submit", function (event) {
+     document.getElementById("edit-state-form").addEventListener("submit", async function (event) {
     event.preventDefault();
 
     const newName = document.getElementById("edit-state-name").value.trim();
@@ -674,6 +745,16 @@ if (editStateDialog && deleteStateDialog) {
       }
     });
 
+    // move the picture to the new name
+    if (data.stateImages[stateBeingChanged]) {
+      data.stateImages[newName] = data.stateImages[stateBeingChanged];
+      delete data.stateImages[stateBeingChanged];
+    }
+
+    // a newly chosen picture replaces the old one
+    const newImage = await readImage(document.getElementById("edit-state-image").files[0]);
+    if (newImage) data.stateImages[newName] = newImage;
+
     saveData(data);
     renderStates();
     editStateDialog.close();
@@ -697,9 +778,47 @@ if (editStateDialog && deleteStateDialog) {
     data.routes = data.routes.filter(function (r) {
       return !placeIds.includes(r.placeId);
     });
-
+    delete data.stateImages[stateBeingChanged];
     saveData(data);
     renderStates();
     deleteStateDialog.close();
   });
+}
+// ---------- Carousel controls (index.html) ----------
+const carouselList = document.getElementById("states-list");
+
+if (carouselList) {
+  const prev = document.getElementById("carousel-prev");
+  const next = document.getElementById("carousel-next");
+
+  const scrollCarousel = function (direction) {
+    carouselList.scrollBy({
+      left: direction * carouselList.clientWidth * 0.8,
+      behavior: "smooth"
+    });
+  };
+
+  prev.addEventListener("click", function () { scrollCarousel(-1); });
+  next.addEventListener("click", function () { scrollCarousel(1); });
+
+  // Hover to move (only on devices with a mouse)
+  if (window.matchMedia("(hover: hover)").matches) {
+    let timer = null;
+
+    const stopHover = function () {
+      clearInterval(timer);
+      timer = null;
+    };
+
+    const startHover = function (direction) {
+      stopHover();
+      scrollCarousel(direction);
+      timer = setInterval(function () { scrollCarousel(direction); }, 900);
+    };
+
+    prev.addEventListener("mouseenter", function () { startHover(-1); });
+    prev.addEventListener("mouseleave", stopHover);
+    next.addEventListener("mouseenter", function () { startHover(1); });
+    next.addEventListener("mouseleave", stopHover);
+  }
 }

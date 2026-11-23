@@ -1,0 +1,194 @@
+/* ===== 1. FOUNDATION ===== */
+
+/* Colours live here once, and everything else uses them */
+:root {
+  --blush: #FBF3F5;
+  --rose: #A8305F;
+  --petal: #F7DCE6;
+  --mauve: #EBD3DB;
+  --plum: #3A1F33;
+  --ink: #2E1F2B;
+  --muted: #6F5A68;
+  --line: #B58FA0;
+  --danger: #B3261E;
+  --white: #FFFFFF;
+  --radius: 12px;
+}
+
+/* Include padding and border in an element's width */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  background: var(--blush);
+  color: var(--ink);
+}
+
+/* A centred column that looks right on a phone and on a laptop */
+header,
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+
+h1 {
+  margin: 0 0 6px;
+  font-size: 1.9rem;
+}
+
+a {
+  color: var(--rose);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tld {
+  color: var(--rose);
+  font-size: 0.6em;
+  font-weight: 500;
+}
+
+/* Shows where the keyboard focus is (good for accessibility) */
+:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 2px;
+}
+
+
+/* ===== CAROUSEL (state picker) ===== */
+.carousel {
+  position: relative;
+  margin-bottom: 30px;
+
+}
+
+#states-list {
+  display: flex;
+  gap: 16px;
+  padding: 8px 4px 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+#states-list::-webkit-scrollbar {
+  display: none;
+}
+
+.state-card {
+  flex: 0 0 75%;
+  scroll-snap-align: center;
+  background: var(--white);
+  border: 1px solid var(--mauve);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.state-link {
+  display: block;
+  color: var(--ink);
+}
+
+.state-link:hover {
+  text-decoration: none;
+}
+
+.state-picture {
+  height: 280px;
+  background-color: var(--mauve);
+  background-size: cover;
+  background-position: center;
+}
+
+.state-name {
+  display: block;
+  padding: 12px 16px 4px;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.state-actions {
+  display: flex;
+  gap: 8px;
+  padding: 4px 16px 16px;
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 120px;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+#carousel-prev { left: -8px; }
+#carousel-next { right: -8px; }
+
+/* Button stylings */
+button{
+    cursor: pointer;
+}
+#add-place-btn, #add-route-btn {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--white);
+  background: var(--rose);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.state-actions button,#add-state-btn {
+  height: 40px;
+  padding: 3px 14px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-rename {
+  border: 1px solid var(--rose);
+  color: var(--white);
+  background-color: var(--rose);
+}
+
+.btn-delete {
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  background-color: var(--white);
+}
+#add-state-btn{
+color: var(--rose);
+border: 2px solid var(--rose);
+padding: 3px auto;
+font-size:16px;
+font-weight: 600;
+display: block;
+margin: 0px auto;
+background-color: var(--white);
+}

@@ -9,12 +9,16 @@
 <body>
 
   <header>
-    <h1>My Routes<sub>.NG</sub></h1>
+    <h1>myRoutes<span class="tld">.NG</span></h1>
     <p>Which state are you in?</p>
   </header>
 
   <main>
-    <ul id="states-list"></ul>
+    <div class="carousel">
+  <button type="button" id="carousel-prev" class="carousel-arrow" aria-label="Previous state">‹</button>
+  <ul id="states-list"></ul>
+  <button type="button" id="carousel-next" class="carousel-arrow" aria-label="Next state">›</button>
+</div>
 
     <button id="add-state-btn">+ Add state</button>
   </main>
@@ -24,6 +28,8 @@
 
     <label for="state-name">State name</label>
     <input type="text" id="state-name" required>
+    <label for="state-image">Picture (optional)</label>
+<input type="file" id="state-image" accept="image/*">
     <p id="state-error" hidden></p>
 
     <button type="button" id="state-cancel">Cancel</button>
@@ -36,6 +42,8 @@
 
     <label for="edit-state-name">New name</label>
     <input type="text" id="edit-state-name" required>
+    <label for="edit-state-image">Change picture (optional)</label>
+<input type="file" id="edit-state-image" accept="image/*">
     <p id="edit-state-error" hidden></p>
 
     <button type="button" id="edit-state-cancel">Cancel</button>
