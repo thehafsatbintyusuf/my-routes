@@ -13,6 +13,8 @@ function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 // ---------- State picker (index.html) ----------
+let stateBeingChanged = null;
+
 function renderStates() {
   const list = document.getElementById("states-list");
   if (!list) return; // not on this page
@@ -22,10 +24,22 @@ function renderStates() {
 
   data.states.forEach(function (state) {
     const li = document.createElement("li");
+
     const link = document.createElement("a");
     link.textContent = state;
     link.href = "places.html?state=" + encodeURIComponent(state);
-    li.appendChild(link);
+
+    const renameBtn = makeButton("Rename", "Rename " + state);
+    const deleteBtn = makeButton("Delete", "Delete " + state);
+
+    renameBtn.addEventListener("click", function () {
+      openRenameState(state);
+    });
+    deleteBtn.addEventListener("click", function () {
+      openDeleteState(state);
+    });
+
+    li.append(link, renameBtn, deleteBtn);
     list.appendChild(li);
   });
 }
@@ -583,5 +597,109 @@ if (deleteDialog) {
     window.location.href = route
       ? "place.html?place=" + route.placeId
       : "index.html";
+  });
+}
+// ---------- Rename and delete a state (index.html) ----------
+function openRenameState(state) {
+  stateBeingChanged = state;
+  const input = document.getElementById("edit-state-name");
+  input.value = state;
+  document.getElementById("edit-state-error").hidden = true;
+  document.getElementById("edit-state-dialog").showModal();
+  input.focus();
+  input.select();
+}
+
+function openDeleteState(state) {
+  stateBeingChanged = state;
+  const data = loadData();
+
+  const placeIds = data.places
+    .filter(function (p) { return p.state === state; })
+    .map(function (p) { return p.id; });
+
+  const routeCount = data.routes.filter(function (r) {
+    return placeIds.includes(r.placeId);
+  }).length;
+
+  document.getElementById("delete-state-title").textContent = "Delete " + state + "?";
+  document.getElementById("delete-state-message").textContent =
+    placeIds.length === 0
+      ? "This cannot be undone."
+      : "This will also delete its " + placeIds.length +
+        (placeIds.length === 1 ? " place" : " places") + " and " + routeCount +
+        (routeCount === 1 ? " route" : " routes") + ". This cannot be undone.";
+
+  document.getElementById("delete-state-dialog").showModal();
+}
+
+const editStateDialog = document.getElementById("edit-state-dialog");
+const deleteStateDialog = document.getElementById("delete-state-dialog");
+
+if (editStateDialog && deleteStateDialog) {
+  document.getElementById("edit-state-cancel").addEventListener("click", function () {
+    editStateDialog.close();
+  });
+
+  document.getElementById("delete-state-cancel").addEventListener("click", function () {
+    deleteStateDialog.close();
+  });
+
+  document.getElementById("edit-state-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const newName = document.getElementById("edit-state-name").value.trim();
+    if (!newName) return;
+
+    const data = loadData();
+
+    const taken = data.states.some(function (s) {
+      return s.toLowerCase() === newName.toLowerCase() && s !== stateBeingChanged;
+    });
+
+    if (taken) {
+      const error = document.getElementById("edit-state-error");
+      error.textContent = newName + " is already saved.";
+      error.hidden = false;
+      return;
+    }
+
+    data.states = data.states.map(function (s) {
+      return s === stateBeingChanged ? newName : s;
+    });
+
+    data.places.forEach(function (place) {
+      if (place.state === stateBeingChanged) {
+        place.state = newName;
+      }
+    });
+
+    saveData(data);
+    renderStates();
+    editStateDialog.close();
+  });
+
+  document.getElementById("delete-state-form").addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const data = loadData();
+
+    const placeIds = data.places
+      .filter(function (p) { return p.state === stateBeingChanged; })
+      .map(function (p) { return p.id; });
+
+    data.states = data.states.filter(function (s) {
+      return s !== stateBeingChanged;
+    });
+    data.places = data.places.filter(function (p) {
+      return p.state !== stateBeingChanged;
+    });
+    data.routes = data.routes.filter(function (r) {
+      return !placeIds.includes(r.placeId);
+    });
+
+    saveData(data);
+    renderStates();
+    deleteStateDialog.close();
   });
 }

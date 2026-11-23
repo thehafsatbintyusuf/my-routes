@@ -30,6 +30,28 @@
     <button type="submit">Add</button>
   </form>
 </dialog>
+<dialog id="edit-state-dialog">
+  <form id="edit-state-form">
+    <h2>Rename state</h2>
+
+    <label for="edit-state-name">New name</label>
+    <input type="text" id="edit-state-name" required>
+    <p id="edit-state-error" hidden></p>
+
+    <button type="button" id="edit-state-cancel">Cancel</button>
+    <button type="submit">Save</button>
+  </form>
+</dialog>
+
+<dialog id="delete-state-dialog">
+  <form id="delete-state-form">
+    <h2 id="delete-state-title"></h2>
+    <p id="delete-state-message"></p>
+
+    <button type="button" id="delete-state-cancel">Cancel</button>
+    <button type="submit">Delete</button>
+  </form>
+</dialog>
   <script src="script.js"></script>
 </body>
 </html>
