@@ -75,23 +75,27 @@ function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
 
-function renderPlaces() {
+function renderPlaces(searchText) {
   const list = document.getElementById("places-list");
   if (!list) return; // not on this page
 
+  const query = (searchText || "").toLowerCase();
   const state = getParam("state");
   document.getElementById("state-title").textContent = state;
 
   const data = loadData();
   const places = data.places.filter(function (place) {
-    return place.state === state;
+    return place.state === state &&
+           place.name.toLowerCase().includes(query);
   });
 
   list.innerHTML = "";
 
   if (places.length === 0) {
     const empty = document.createElement("li");
-    empty.textContent = "No places saved in " + state + " yet.";
+    empty.textContent = query
+      ? "No places match \"" + searchText + "\"."
+      : "No places saved in " + state + " yet.";
     list.appendChild(empty);
     return;
   }
@@ -155,13 +159,19 @@ if (placeDialog) {
 
     data.places.push({ id: Date.now(), name: clean, state: state });
     saveData(data);
-    renderPlaces();
+    renderPlaces(searchBox ? searchBox.value.trim() : "");
     placeDialog.close();
   });
 }
 
 renderPlaces();
+const searchBox = document.getElementById("search");
 
+if (searchBox) {
+  searchBox.addEventListener("input", function () {
+    renderPlaces(searchBox.value.trim());
+  });
+}
 
 // ---------- Place page (place.html) ----------
 function renderPlace() {
